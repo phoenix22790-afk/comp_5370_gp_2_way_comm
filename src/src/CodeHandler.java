@@ -24,11 +24,19 @@ public class CodeHandler {
     private SecureRandom keygen;
     private KeyFactory keymaker;
 
+    private ECPrivateKey privkey;
+    private ECPrivateKey Sharedkey;
+    public SecretKey otherKey;
+    public ECPublicKey publickey;
+
     //This block makes the Parameters of the curve we're using
     private BigInteger primestart = new BigInteger("115792089210356248762697446949407573530086143415290314195533631308867097853951");
     private ECFieldFp field = new ECFieldFp(primestart);
-    //All these massive numbers come from
-    //https://www.secg.org/sec2-v2.pdf <- Section 2.4.2
+
+    //  All these massive numbers come from
+    //  https://www.secg.org/sec2-v2.pdf <- Section 2.4.2
+    //  Just translated from hex to decimal to fit the constructors
+
     private BigInteger acoeff = new BigInteger("115792089210356248762697446949407573530086143415290314195533631308867097853948");
     private BigInteger bcoeff = new BigInteger("41058363725152142129326129780047268409114441015993725554835256314039467401291");
 
@@ -36,16 +44,23 @@ public class CodeHandler {
             (byte) 0x6a, (byte) 0x66, (byte) 0x78, (byte) 0xe1, (byte) 0x13, (byte) 0x9d, (byte) 0x26, (byte) 0xb7,
             (byte) 0x81, (byte) 0x9f, (byte) 0x7e, (byte) 0x90};
 
-    //Now to define the
-
+    //Now to define the actual curve
     private EllipticCurve ecUsed = new EllipticCurve(field, acoeff, bcoeff, seed);
 
+    //Setting base point G
+    private BigInteger g_x = new BigInteger("48439561293906451759052585252797914202762949526041747995844080717082404635286");
+    private BigInteger g_y = new BigInteger("36134250956749795798585127919587881956611106672985015071877198253568414405109");
+    private ECPoint gpoint = new ECPoint(g_x, g_y);
+
+    //Setting Order of function
+    private BigInteger n = new BigInteger("115792089210356248762697446949407573529996955224135760342422259061068512044369");
+    ECParameterSpec keyspecs = new ECParameterSpec(ecUsed, gpoint, n, 1);
 
     {
         try {
-            cipher = Cipher.getInstance("AES_256/GCM/NoPadding");
+            cipher = Cipher.getInstance("AES_256/GCM/NoPadding", "SunJCE");
 
-        } catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | NoSuchProviderException e) {
             throw new RuntimeException(e);
         }
 
@@ -74,10 +89,7 @@ public class CodeHandler {
 
     private ECGenParameterSpec params = new ECGenParameterSpec("secp256r1");
 
-    private ECPrivateKey privkey;
-    private SecretKey Sharedkey;
-    public SecretKey otherKey;
-    public ECPublicKey publickey;
+
 
 
     public CodeHandler() {
@@ -100,7 +112,6 @@ public class CodeHandler {
         println("X Byte length: " + x_bytes.length);
         byte[] y_bytes = other_y.getBytes();
         BigInteger new_x = new BigInteger(x_bytes);
-        BigInteger new_y = new BigInteger(y_bytes);
 
         /*Okay so with EC diffie-hellman, especially using the same curve and base point
         (as we are doing since we're using a standard curve specification)
@@ -109,24 +120,19 @@ public class CodeHandler {
         with a shared key due to the commutative property and yadda yadda.
 
         Basically, the shared key is their pub * your private, both sides do it.*/
-        new_x = new_x.multiply(privkey.getS());
-        new_y = new_y.multiply(privkey.getS());
-        int len = new_x.toByteArray().length + new_y.toByteArray().length;
-        String sharecombine = new_x.toString().concat(new_y.toString());
+        BigInteger privx = g_x.multiply(privkey.getS());
+        new_x = new_x.add(privx);
+        println(new_x.toByteArray().length);
 
-        ECPoint newpoint = new ECPoint(new_x,new_y);
-        //ECPublicKeySpec specs = new ECPublicKeySpec(newpoint, params);
-
-
-        //Okay the other key is the coordinates of W aka the X and Y that we transmitted earlier.
-
-
-
-
-
-        byte[] share = sharecombine.getBytes();
-
-        this.Sharedkey = new SecretKeySpec(share, "EC");
+        ECPrivateKeySpec newspecs = new ECPrivateKeySpec(new_x, keyspecs);
+        try {
+            PrivateKey catcher = keymaker.generatePrivate(newspecs);
+            if (catcher instanceof ECPrivateKey) {
+                this.Sharedkey = (ECPrivateKey) catcher;
+            }
+        } catch (InvalidKeySpecException e) {
+            throw new RuntimeException(e);
+        }
 
     }
 
@@ -216,10 +222,10 @@ public class CodeHandler {
         client.setOther_calcShared(pcoords[0], pcoords[1]);
         println(client.Sharedkey.getEncoded());
 
-        /* String begging = "HI PLEASE WORK";
+        String begging = "HI PLEASE WORK";
         String pencode = please.encoder(begging);
         println(pencode);
         String cldecode = client.decoder(pencode);
-        println(cldecode); */
+        println(cldecode);
     }
 }
