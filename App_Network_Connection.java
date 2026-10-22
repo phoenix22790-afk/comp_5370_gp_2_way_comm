@@ -14,7 +14,31 @@ public static void main(String[]args){
 
     //take in inputs ip and port, which are the ip address and port address respectively 
     //also take in if starting as server/listening side, saved as Listening
+    boolean listening;
+    Scanner scan=new Scanner(System.in)
+    System.out.println("Enter ip address: ");
+    String ip=scan.nextLine();
+    
+    System.out.println("Enter port number: ");
+    String port_str=scan.nextLine();
+    int port=int(port_str);
+    
+    boolean known_type=False;
+    while(known_type==False){
+        System.out.println("Do you want to start as Messenger or Listener? (type M or L respectively)");
+        String t=scan.nextLine();
+        if (t=="M"||t=="m"){
+            known_type=True;
+            listening=False;
+        }
 
+        elif (t=="L"||t=="l"){
+            known_type=True;
+            listening=True;
+        }
+        else:
+            System.out.println("Invalid response, please try again. ")
+    }
     
     if (listening==True) //Acting as Server Side
         ServerSide(ip, port);
