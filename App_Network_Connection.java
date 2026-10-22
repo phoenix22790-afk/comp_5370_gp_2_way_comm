@@ -3,10 +3,11 @@
 import java.io.*;
 import java.net.*;
 
-
 //Note 1: Need to have an overarching "listening" variable that user input can update at any time by clicking button in ui
 //Note 2: Need to have a way to exit application. implement exiting via continueConnection boolean. 
 //Note 3: Buffers also probably need to be global for this to work
+
+public boolean continueConnection=True; // if false, this is basically the signal to stop and end the program
 
 
 public static void main(String[]args){
@@ -14,7 +15,6 @@ public static void main(String[]args){
     //take in inputs ip and port, which are the ip address and port address respectively 
     //also take in if starting as server/listening side, saved as Listening
 
-    boolean continueConnection=True; // if false, this is basically the signal to stop and end the program
     
     if (listening==True) //Acting as Server Side
         ServerSide(ip, port);
@@ -30,7 +30,8 @@ public static void main(String[]args){
 public void ServerSide(String ip, int port){ //For if app acting as Server
     ServerSocket server_sock = new ServerSocket(port); //note: may need to make this ip, 1, port
     Socket client_sock = server_sock.accept(); 
-
+    in = new DataInputStream(new BufferedInputStream(client_sock.getInputStream()));
+    
     while(continueConnection):
         if(listening==True)
             ServerListen();
@@ -39,7 +40,9 @@ public void ServerSide(String ip, int port){ //For if app acting as Server
     
 
     server_sock.close();
+    in.close();
 }
+
 
 
 public void ClientSide(String ip, int port){ //For if app acting as Client
@@ -52,23 +55,37 @@ public void ClientSide(String ip, int port){ //For if app acting as Client
         if(listening==True)
             ClientListen();
         else
-            ClientSend();
+            ClientSend(in,out);
 
 
     client_sock.close();
+    in.close();
+    out.close();
 }
-
-
 
 
 //planning on using .readUTF() with input stream reader to read the information,
 
-// was  planning on readLine() for user string inputs, but I need to either figure out a timeout or way to exit this
-//  for when user doesnt want to send a message or is trying to switch to listen
+// was planning on readLine() for user string inputs, but I need to either figure out a timeout or way to exit this
+// for when user doesnt want to send a message or is trying to switch to listen
 
+public void ClientListen(){
+}
 
+public void ClientSend(BufferedReader in,DataOutputStream out){
+    String str_send=in.readLine(); //NEED TO FIGURE OUT EXIT METHOD
+    out.writeUTF(str_send);
+}
 
-public void ClientListen(){}
-public void ClientSend(){}
-public void ServerListen(){}
+public void ServerListen(){
+    try{
+        String str_listen=in.readUTF();
+        print(str_listen);
+    }
+    catch (Exception e){
+        System.out.println("error! ",e); // No new messages, or some sort of error. 
+    }
+    
+}
+
 public void ServerSend(){}
