@@ -1,5 +1,7 @@
 package UI;
 
+import UI.UIElement;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -11,14 +13,16 @@ public class TextBox implements UIElement, KeyListener {
     private final Font font;
     private final int height, x, y;
     private boolean focused = false;
+    private Color color;
     private Consumer<String> action;
 
-    public TextBox(JPanel parent, Font font, int width, int height, int x, int y, Consumer<String> action) {
+    public TextBox(JPanel parent, Font font, int width, int height, int x, int y, Color color, Consumer<String> action) {
         this.parent = parent;
         this.font = font;
         this.height = height;
         this.x = x;
         this.y = y;
+        this.color = color;
         this.action = action;
 
         new ClickListener(parent, new Rectangle(x, y, width, height), () -> {
@@ -51,7 +55,7 @@ public class TextBox implements UIElement, KeyListener {
     @Override
     public void draw(Graphics g) {
         g.setFont(font);
-        g.setColor(Color.BLACK);
+        g.setColor(color);
         g.drawString(text.toString(), x, y + height - 4);
     }
 }

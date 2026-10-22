@@ -1,5 +1,9 @@
 package UI;
 
+import UI.ClickListener;
+import UI.TextBox;
+import UI.UIElement;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyListener;
@@ -32,10 +36,17 @@ public class UIHandler extends JPanel {
     }
 
 
-    public void addTextBox(int fontSize, int clickAreaWidth, int clickAreaHeight, int x, int y, Consumer<String> onEnter) {
-        elements.add(new TextBox(this, new Font("Arial", Font.PLAIN, fontSize), clickAreaWidth, clickAreaHeight, x, y, onEnter));
+    public void addTextBox(int fontSize, int clickAreaWidth, int clickAreaHeight, int x, int y, Color color, Consumer<String> onEnter) {
+        elements.add(new TextBox(this, new Font("Arial", Font.PLAIN, fontSize), clickAreaWidth, clickAreaHeight, x, y, color, onEnter));
         requestFocusInWindow();
         repaint();
+    }
+
+    public MessageBox addMessageBox(Color color, int size, int x, int y){
+        MessageBox save = new MessageBox(this, color, size, x, y);
+        elements.add(save);
+        repaint();
+        return save;
     }
 
     public void clearWindow() {
