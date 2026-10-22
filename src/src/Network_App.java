@@ -11,6 +11,10 @@ import java.awt.event.*;
 import UI.MessageBox;
 import UI.UIHandler;
 
+import java.io.*;
+import java.net.*;
+
+
 public class Network_App {
 
     public static void main(String[] args) throws Exception {
@@ -104,15 +108,20 @@ public class Network_App {
 
         if (listening==false){//CLIENT METHOD
             //SETUP SECTION
-
+            Socket client_sock = new Socket(ip,port);
+            BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+            DataOutputStream out = new DataOutputStream(client_sock.getOutputStream());
+            
 
             //ENTER MAIN LOOP
             while(continueConnection){
                 if(listening==true){//CLIENT LISTENING
-
+                
                 }
 
                 else{//CLIENT WRITING
+                    String str_send=in.readLine(); //NEED TO FIGURE OUT EXIT METHOD
+                    out.writeUTF(str_send);
 
 
                 }
@@ -128,17 +137,21 @@ public class Network_App {
             //SETUP
             ServerSocket server_sock = new ServerSocket(port); //note: may need to make this ip, 1, port
             Socket client_sock = server_sock.accept();
-            DataInputStream in = new DataInputStream(new BufferedInputStream(client_sock.getInputStream()));
+            
+            DataInputStream in = new DataInputStream(client_sock.getInputStream());
+            DataOutputStream out = new DataOutputStream(client_sock.getOutputStream());
+            BufferedReader user_in = new BufferedReader(new InputStreamReader(System.in));
 
             //ENTER MAIN LOOP
-
             while(continueConnection){
                 if(listening==true){//SERVER LISTENING
-
+                    String msg = in.readUTF(); // Read message from client
+                    System.out.println(msg);
                 }
 
                 else{//SERVER WRITING
-
+                    String str_send=user_in.readLine(); //NEED TO FIGURE OUT EXIT METHOD
+                    out.writeUTF(str_send);
                 }
 
             }
@@ -159,5 +172,3 @@ public class Network_App {
 
 
 }
-
-
