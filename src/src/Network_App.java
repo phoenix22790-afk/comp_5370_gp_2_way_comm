@@ -109,18 +109,21 @@ public class Network_App {
         if (listening==false){//CLIENT METHOD
             //SETUP SECTION
             Socket client_sock = new Socket(ip,port);
-            BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+            BufferedReader user_in = new BufferedReader(new InputStreamReader(System.in));
+            
+            DataInputStream in = new DataInputStream(client_sock.getInputStream());
             DataOutputStream out = new DataOutputStream(client_sock.getOutputStream());
             
 
             //ENTER MAIN LOOP
             while(continueConnection){
                 if(listening==true){//CLIENT LISTENING
-                
+                    String server_msg=in.readUTF();
+                    System.out.println(server_msg);
                 }
 
                 else{//CLIENT WRITING
-                    String str_send=in.readLine(); //NEED TO FIGURE OUT EXIT METHOD
+                    String str_send=user_in.readLine(); //NEED TO FIGURE OUT EXIT METHOD
                     out.writeUTF(str_send);
 
 
