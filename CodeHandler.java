@@ -1,32 +1,31 @@
 import javacardx.crypto.AEADCipher;
 import javacardx.crypto.Cipher;
-import javacard.crypto.GenericSecretKey;
-import java.security.SecureRandom;
-import java.security.KeyPairGenerator;
-import java.security.KeyPair;
+import javacard.security.GenericSecretKey;
+import javacard.security.KeyBuilder;
+import javacard.security.Key;
+import java.nio.charset.StandardCharsets;
+import java.security.*;
 import java.security.spec.ECPoint;
 import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.ECPublicKey;
-import java.security.PrivateKey;
-import java.security.PublicKey;
+
 import java.lang.Math;
 import java.util.Arrays;
 import java.security.spec.NamedParameterSpec;
 import java.math.BigInteger;
 
 public class CodeHandler {
-    private AEADCipher cipher = Cipher.getInstance(0xf3, false);
+    private AEADCipher cipher = (AEADCipher) Cipher.getInstance((byte) 0xf3, false);
     private SecureRandom keygen = SecureRandom.getInstance("NativePRNGBlocking");
     private KeyPairGenerator pairgen = KeyPairGenerator.getInstance("EC");
-
     private NamedParameterSpec params = new NamedParameterSpec("ED25519");
 
     private ECPrivateKey privkey;
     private GenericSecretKey Sharedkey;
     public GenericSecretKey otherKey;
     public ECPublicKey publickey;
-    
-    
+
+
     public void CodeHandler() {
         pairgen.initialize(params, keygen);
         KeyPair keys = pairgen.genKeyPair();
@@ -61,13 +60,20 @@ public class CodeHandler {
         byte[] fin = combine.getBytes();
 
         //Okay the other key is the coordinates of W aka the X and Y that we transmitted earlier.
-        this.otherKey = new GenericPublicKey();
-        this.otherKey.setKey(fin, 0, fin.length);
+        Key tester = KeyBuilder.buildKey((byte) 0x14, (short) fin.length, false);
+        if (tester instanceof GenericSecretKey) {
+            this.otherKey = (GenericSecretKey) tester;
+        }
+        this.otherKey.setKey(fin, (short) 0, (short) fin.length);
 
 
-        this.Sharedkey = new GenericPublicKey();
+
         byte[] share = sharecombine.getBytes();
-        this.Sharedkey.setKey(share, 0, share.length);
+        tester = KeyBuilder.buildKey((byte) 0x14, (short) fin.length, false);
+        if (tester instanceof GenericSecretKey) {
+            this.Sharedkey = (GenericSecretKey) tester;
+        }
+        this.Sharedkey.setKey(share, (short) 0, (short) share.length);
 
     }
 
@@ -90,28 +96,28 @@ public class CodeHandler {
     public String encoder(String message) {
         byte[] iv = new byte[12];
         keygen.nextBytes(iv);
-        cipher.init(Sharedkey, 0x2, iv, 0, 12);
+        cipher.init(Sharedkey, (byte) 0x2, iv, (short) 0, (short) 12);
 
-        byte[] input = message.getBytes("UTF-16");
+        byte[] input = message.getBytes(StandardCharsets.UTF_16);
         //This should be how long the encrypted message is 
         //(source:https://www.trustedcalcs.com/en-us/guides/dev-tools/aes-gcm-encryption)
         byte[] output = new byte[(int) Math.ceil(input.length * 1.33) + 28];
-        short ciphertext = cipher.doFinal(input, 0, input.length, output, output.length);
+        short ciphertext = cipher.doFinal(input, (short) 0, (short) input.length, output, (short) output.length);
 
-        String fin = new String(output, "UTF-16");
+        String fin = new String(output, StandardCharsets.UTF_16);
         return fin;
     }
 
     /*GAME PLAN 2: Call this on every receipt once the shared key is established. */
     public String decoder(String ciphertext) {
-        byte[] text = ciphertext.getBytes("UTF-16");
+        byte[] text = ciphertext.getBytes(StandardCharsets.UTF_16);
         byte[] iv = Arrays.copyOfRange(text, 0, 11);
         byte[] output = new byte[text.length];
         //I'm just simplifying the length there, it's inefficient but I don't wanna deal.
 
-        cipher.init(Sharedkey, 0x1, iv, 0, 12);
-        short plaintext = cipher.doFinal(text, 0, text.length, output, output.length);
-        String fin = new String(output, "UTF-16");
+        cipher.init(Sharedkey, (byte) 0x1, iv, (short) 0, (short) 12);
+        short plaintext = cipher.doFinal(text, (short) 0, (short) text.length, output, (short) output.length);
+        String fin = new String(output, StandardCharsets.UTF_16);
         return fin;
     }
 
