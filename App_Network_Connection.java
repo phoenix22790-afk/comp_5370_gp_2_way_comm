@@ -48,8 +48,9 @@ public void ServerSide(String ip, int port){ //For if app acting as Server
 public void ClientSide(String ip, int port){ //For if app acting as Client
     socket client_sock = new Socket(ip,port);
 
-    in = new BufferedReader(new InputStreamReader(System.in));// Read input from terminal
+    in = new BufferedReader(new InputStreamReader(server_sock.getInputStream()));// Read input 
     out = new DataOutputStream(client_sock.getOutputStream());// Send data to server
+    
     
     while(continueConnection):
         if(listening==True)
@@ -80,7 +81,7 @@ public void ClientSend(BufferedReader in,DataOutputStream out){
 public void ServerListen(){
     try{
         String str_listen=in.readUTF();
-        print(str_listen);
+        System.out.println(str_listen);
     }
     catch (Exception e){
         System.out.println("error! ",e); // No new messages, or some sort of error. 
