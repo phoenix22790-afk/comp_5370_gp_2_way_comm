@@ -11,7 +11,6 @@ import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.ECPublicKey;
 import java.lang.Math;
 import java.util.Arrays;
-import java.security.spec.NamedParameterSpec;
 import java.math.BigInteger;
 
 
@@ -65,20 +64,20 @@ public class CodeHandler {
         byte[] y_bytes = other_y.getBytes();
         BigInteger new_x = new BigInteger(x_bytes);
         BigInteger new_y = new BigInteger(y_bytes);
-        
+
         /*Okay so with EC diffie-hellman, especially using the same curve and base point
-        (as we are doing since we're using a standard curve specification) 
+        (as we are doing since we're using a standard curve specification)
         The public keys are just the point times the integer that is the private key
         SO! when you multiply their public key by your own private key, you wind up
         with a shared key due to the commutative property and yadda yadda.
-        
+
         Basically, the shared key is their pub * your private, both sides do it.*/
         new_x = new_x.multiply(privkey.getS());
         new_y = new_y.multiply(privkey.getS());
         int len = new_x.toByteArray().length + new_y.toByteArray().length;
         String sharecombine = new_x.toString().concat(new_y.toString());
-        
-        
+
+
         String combine = other_x.concat(other_y);
         byte[] fin = combine.getBytes();
 
@@ -124,7 +123,7 @@ public class CodeHandler {
         cipher.init(Sharedkey, (byte) 0x2, iv, (short) 0, (short) 12);
 
         byte[] input = message.getBytes(StandardCharsets.UTF_16);
-        //This should be how long the encrypted message is 
+        //This should be how long the encrypted message is
         //(source:https://www.trustedcalcs.com/en-us/guides/dev-tools/aes-gcm-encryption)
         byte[] output = new byte[(int) Math.ceil(input.length * 1.33) + 28];
         short ciphertext = cipher.doFinal(input, (short) 0, (short) input.length, output, (short) output.length);
