@@ -25,27 +25,39 @@ public class Network_App {
         while(known_type==false){
         System.out.println("Do you want to start as Messenger or Listener? (type M or L respectively)");
         String t=scan.nextLine();
-        if (t=="M"||t=="m"){
+        if (t.equals("M")||t.equals("m")){
             known_type=true;
             listening=false;
         }
 
-        else if (t=="L"||t=="l"){
+        else if (t.equals("L")||t.equals("l")){
             known_type=true;
             listening=true;
         }
         else
             System.out.println("Invalid response, please try again. ");
         }
-        
-    
+            
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         //ENTER ACTUAL SERVER/CLIENT STUFF NOW
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
         if (listening==false){//CLIENT METHOD
+            //SETUP SECTION
             
+
+            //ENTER MAIN LOOP
+            while(continueConnection){
+                if(listening==true){//CLIENT LISTENING
+
+                }
+
+                else{//CLIENT WRITING
+
+
+                }
+            }
         
         
         
@@ -53,21 +65,20 @@ public class Network_App {
 
 
 
-
-
-
         else if (listening==true){//SERVER METHOD
-        
+            //SETUP
             ServerSocket server_sock = new ServerSocket(port); //note: may need to make this ip, 1, port
             Socket client_sock = server_sock.accept(); 
             DataInputStream in = new DataInputStream(new BufferedInputStream(client_sock.getInputStream()));
             
+            //ENTER MAIN LOOP
+
             while(continueConnection){
                 if(listening==true){//SERVER LISTENING
 
                 }
 
-                else{//SERVER WRITING*
+                else{//SERVER WRITING
 
                 }
             
@@ -79,17 +90,12 @@ public class Network_App {
 
         }
 
+        // COMPLETE ANY ENDING PROCEDURES
 
-
-
-
-
-
-
-
-
-            //if this point is reached,the program has ended
-        System.out.println("Hello, World!");
+        scan.close();
+        //if this point is reached,the program has ended
+        
+        //System.out.println("Hello, World!");
     }
 
 
