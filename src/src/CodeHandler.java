@@ -1,12 +1,14 @@
-import javacardx.crypto.AEADCipher;
-import javacardx.crypto.Cipher;
+
 import javacard.security.GenericSecretKey;
 import javacard.security.KeyBuilder;
 import javacard.security.Key;
+
+import javax.crypto.*;
+import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
-import java.security.spec.ECGenParameterSpec;
-import java.security.spec.ECPoint;
+import java.security.spec.*;
 import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.ECPublicKey;
 import java.lang.Math;
@@ -18,15 +20,49 @@ import java.math.BigInteger;
 import static java.lang.IO.println;
 
 public class CodeHandler {
-    private AEADCipher cipher = (AEADCipher) Cipher.getInstance((byte) 0xf3, false);
+    private javax.crypto.Cipher cipher;
     private SecureRandom keygen;
+    private KeyFactory keymaker;
+
+    //This block makes the Parameters of the curve we're using
+    private BigInteger primestart = new BigInteger("115792089210356248762697446949407573530086143415290314195533631308867097853951");
+    private ECFieldFp field = new ECFieldFp(primestart);
+    //All these massive numbers come from
+    //https://www.secg.org/sec2-v2.pdf <- Section 2.4.2
+    private BigInteger acoeff = new BigInteger("115792089210356248762697446949407573530086143415290314195533631308867097853948");
+    private BigInteger bcoeff = new BigInteger("41058363725152142129326129780047268409114441015993725554835256314039467401291");
+
+    private byte[] seed = {(byte) 0xc4,(byte) 0x9d, (byte) 0x36, (byte) 0x08, (byte) 0x86, (byte) 0xe7, (byte) 0x04, (byte) 0x93,
+            (byte) 0x6a, (byte) 0x66, (byte) 0x78, (byte) 0xe1, (byte) 0x13, (byte) 0x9d, (byte) 0x26, (byte) 0xb7,
+            (byte) 0x81, (byte) 0x9f, (byte) 0x7e, (byte) 0x90};
+
+    //Now to define the
+
+    private EllipticCurve ecUsed = new EllipticCurve(field, acoeff, bcoeff, seed);
+
+
     {
         try {
+            cipher = Cipher.getInstance("AES_256/GCM/NoPadding");
+
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
+            throw new RuntimeException(e);
+        }
+
+        try {
+            keymaker = KeyFactory.getInstance("EC");
+
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+        try {
+
             keygen = SecureRandom.getInstance("Windows-PRNG");
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
     }
+
     private KeyPairGenerator pairgen;
     {
         try {
@@ -39,8 +75,8 @@ public class CodeHandler {
     private ECGenParameterSpec params = new ECGenParameterSpec("secp256r1");
 
     private ECPrivateKey privkey;
-    private GenericSecretKey Sharedkey;
-    public GenericSecretKey otherKey;
+    private SecretKey Sharedkey;
+    public SecretKey otherKey;
     public ECPublicKey publickey;
 
 
@@ -61,6 +97,7 @@ public class CodeHandler {
 
     public void setOther_calcShared(String other_x, String other_y) {
         byte[] x_bytes = other_x.getBytes();
+        println("X Byte length: " + x_bytes.length);
         byte[] y_bytes = other_y.getBytes();
         BigInteger new_x = new BigInteger(x_bytes);
         BigInteger new_y = new BigInteger(y_bytes);
@@ -77,27 +114,19 @@ public class CodeHandler {
         int len = new_x.toByteArray().length + new_y.toByteArray().length;
         String sharecombine = new_x.toString().concat(new_y.toString());
 
+        ECPoint newpoint = new ECPoint(new_x,new_y);
+        //ECPublicKeySpec specs = new ECPublicKeySpec(newpoint, params);
 
-        String combine = other_x.concat(other_y);
-        byte[] fin = combine.getBytes();
 
         //Okay the other key is the coordinates of W aka the X and Y that we transmitted earlier.
-        GenericSecretKey tester = (GenericSecretKey) KeyBuilder.buildKey((byte) 0x14, (short) fin.length, false);
-        println(tester);
-        tester.setKey(fin, (short) 0, (short) fin.length);
-        if (tester instanceof GenericSecretKey) {
-            this.otherKey = (GenericSecretKey) tester;
-        }
-        this.otherKey.setKey(fin, (short) 0, (short) fin.length);
+
+
 
 
 
         byte[] share = sharecombine.getBytes();
-        tester = (GenericSecretKey) KeyBuilder.buildKey((byte) 0x14, (short) fin.length, false);
-        if (tester instanceof GenericSecretKey) {
-            this.Sharedkey = (GenericSecretKey) tester;
-        }
-        this.Sharedkey.setKey(share, (short) 0, (short) share.length);
+
+        this.Sharedkey = new SecretKeySpec(share, "EC");
 
     }
 
@@ -117,30 +146,57 @@ public class CodeHandler {
 
     /*GAME PLAN: This gets called EVERY time a message is to be sent.
     It is also only for the Shared messages, not any of the setup/requests */
-    public String encoder(String message) {
+    public String encoder(String message){
         byte[] iv = new byte[12];
         keygen.nextBytes(iv);
-        cipher.init(Sharedkey, (byte) 0x2, iv, (short) 0, (short) 12);
+        GCMParameterSpec gcparams = new GCMParameterSpec(128, iv);
+
+        try {
+            cipher.init(1, Sharedkey, gcparams, keygen);
+        } catch (InvalidKeyException | InvalidAlgorithmParameterException e) {
+            throw new RuntimeException(e);
+        }
 
         byte[] input = message.getBytes(StandardCharsets.UTF_16);
         //This should be how long the encrypted message is
         //(source:https://www.trustedcalcs.com/en-us/guides/dev-tools/aes-gcm-encryption)
         byte[] output = new byte[(int) Math.ceil(input.length * 1.33) + 28];
-        short ciphertext = cipher.doFinal(input, (short) 0, (short) input.length, output, (short) output.length);
+
+        try {
+            int ciphertext = cipher.doFinal(input, 0, input.length, output, 0);
+        } catch (ShortBufferException | IllegalBlockSizeException | BadPaddingException e) {
+            throw new RuntimeException(e);
+        }
 
         String fin = new String(output, StandardCharsets.UTF_16);
         return fin;
     }
 
     /*GAME PLAN 2: Call this on every receipt once the shared key is established. */
-    public String decoder(String ciphertext) {
+    public String decoder(String ciphertext){
         byte[] text = ciphertext.getBytes(StandardCharsets.UTF_16);
         byte[] iv = Arrays.copyOfRange(text, 0, 11);
         byte[] output = new byte[text.length];
+        GCMParameterSpec gcparams= new GCMParameterSpec(128, iv);
         //I'm just simplifying the length there, it's inefficient but I don't wanna deal.
 
-        cipher.init(Sharedkey, (byte) 0x1, iv, (short) 0, (short) 12);
-        short plaintext = cipher.doFinal(text, (short) 0, (short) text.length, output, (short) output.length);
+        try {
+            cipher.init(2, Sharedkey, gcparams, keygen);
+        } catch (InvalidKeyException e) {
+            throw new RuntimeException(e);
+        } catch (InvalidAlgorithmParameterException e) {
+            throw new RuntimeException(e);
+        }
+
+        try {
+            int plaintext = cipher.doFinal(text, 0, text.length, output, 0);
+        } catch (ShortBufferException e) {
+            throw new RuntimeException(e);
+        } catch (IllegalBlockSizeException e) {
+            throw new RuntimeException(e);
+        } catch (BadPaddingException e) {
+            throw new RuntimeException(e);
+        }
         String fin = new String(output, StandardCharsets.UTF_16);
         return fin;
     }
@@ -149,6 +205,21 @@ public class CodeHandler {
         CodeHandler client = new CodeHandler();
         String[] pcoords = please.getPublicCoords();
         String[] clcoords = client.getPublicCoords();
+        println(please.publickey.getAlgorithm());
+        println(please.publickey.getFormat());
+        println(please.publickey.getEncoded());
+        println(please.publickey.getW());
+        println(please.publickey.getW().getAffineX());
+        println(please.publickey.getW().getAffineY());
         please.setOther_calcShared(clcoords[0], clcoords[1]);
+        println(please.Sharedkey.getEncoded());
+        client.setOther_calcShared(pcoords[0], pcoords[1]);
+        println(client.Sharedkey.getEncoded());
+
+        /* String begging = "HI PLEASE WORK";
+        String pencode = please.encoder(begging);
+        println(pencode);
+        String cldecode = client.decoder(pencode);
+        println(cldecode); */
     }
 }
