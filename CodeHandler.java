@@ -4,8 +4,11 @@ import javacard.crypto.GenericSecretKey;
 import java.security.SecureRandom;
 import java.security.KeyPairGenerator;
 import java.security.KeyPair;
+import java.security.spec.ECPoint;
 import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.ECPublicKey;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.lang.Math;
 import java.util.Arrays;
 import java.security.spec.NamedParameterSpec;
@@ -25,10 +28,14 @@ public class CodeHandler {
     
     
     public void CodeHandler() {
-        pairgen = pairgen.initialize(params, keygen);
+        pairgen.initialize(params, keygen);
         KeyPair keys = pairgen.genKeyPair();
-        privkey = keys.getPrivate();
-        publickey = keys.getPublic();
+        if (keys.getPrivate() instanceof ECPrivateKey) {
+            privkey = (ECPrivateKey) keys.getPrivate();
+        }
+        if (keys.getPublic() instanceof ECPublicKey) {
+            publickey = (ECPublicKey) keys.getPublic();
+        }
     }
 
     public void setOther_calcShared(String other_x, String other_y) {
@@ -44,22 +51,23 @@ public class CodeHandler {
         with a shared key due to the commutative property and yadda yadda.
         
         Basically, the shared key is their pub * your private, both sides do it.*/
-        new_x = new_x.multiply(privkey);
-        new_y = new_y.multiply(privkey);
-        len = new_x.toByteArray().length + new_y.toByteArray().length
+        new_x = new_x.multiply(privkey.getS());
+        new_y = new_y.multiply(privkey.getS());
+        int len = new_x.toByteArray().length + new_y.toByteArray().length;
         String sharecombine = new_x.toString().concat(new_y.toString());
         
         
         String combine = other_x.concat(other_y);
+        byte[] fin = combine.getBytes();
 
         //Okay the other key is the coordinates of W aka the X and Y that we transmitted earlier.
         this.otherKey = new GenericPublicKey();
         this.otherKey.setKey(fin, 0, fin.length);
 
 
-        this.SharedKey = new GenericPublicKey();
+        this.Sharedkey = new GenericPublicKey();
         byte[] share = sharecombine.getBytes();
-        this.SharedKey.setKey(share, 0, share.length);
+        this.Sharedkey.setKey(share, 0, share.length);
 
     }
 
@@ -69,10 +77,10 @@ public class CodeHandler {
         YOU NEED TO SEND THESE TO THE OTHER MACHINE
         SO THEY CAN CALCULATE THE SHARED KEY CORRECTLY. */
 
-        ECPoint pubpoint = this.publicKey.getW()
+        ECPoint pubpoint = this.publickey.getW();
         BigInteger pubx = pubpoint.getAffineX();
         BigInteger puby = pubpoint.getAffineY();
-        String[] strings = {pubx.toString(), puby.toString()}
+        String[] strings = {pubx.toString(), puby.toString()};
         return strings;
     }
 
@@ -102,7 +110,7 @@ public class CodeHandler {
         //I'm just simplifying the length there, it's inefficient but I don't wanna deal.
 
         cipher.init(Sharedkey, 0x1, iv, 0, 12);
-        short plaintext = cipherx.doFinal(text, 0, text.length, output, output.length);
+        short plaintext = cipher.doFinal(text, 0, text.length, output, output.length);
         String fin = new String(output, "UTF-16");
         return fin;
     }
