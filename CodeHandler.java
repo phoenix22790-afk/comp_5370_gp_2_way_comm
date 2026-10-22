@@ -5,20 +5,39 @@ import javacard.security.KeyBuilder;
 import javacard.security.Key;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
+import java.security.spec.ECGenParameterSpec;
 import java.security.spec.ECPoint;
 import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.ECPublicKey;
-
 import java.lang.Math;
 import java.util.Arrays;
 import java.security.spec.NamedParameterSpec;
 import java.math.BigInteger;
 
+
+//HEY LOOK AT THIS
+import static java.lang.IO.println;
+
 public class CodeHandler {
     private AEADCipher cipher = (AEADCipher) Cipher.getInstance((byte) 0xf3, false);
-    private SecureRandom keygen = SecureRandom.getInstance("NativePRNGBlocking");
-    private KeyPairGenerator pairgen = KeyPairGenerator.getInstance("EC");
-    private NamedParameterSpec params = new NamedParameterSpec("ED25519");
+    private SecureRandom keygen;
+    {
+        try {
+            keygen = SecureRandom.getInstance("Windows-PRNG");
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    private KeyPairGenerator pairgen;
+    {
+        try {
+            pairgen = KeyPairGenerator.getInstance("EC");
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private ECGenParameterSpec params = new ECGenParameterSpec("secp256r1");
 
     private ECPrivateKey privkey;
     private GenericSecretKey Sharedkey;
@@ -26,8 +45,12 @@ public class CodeHandler {
     public ECPublicKey publickey;
 
 
-    public void CodeHandler() {
-        pairgen.initialize(params, keygen);
+    public CodeHandler() {
+        try {
+            pairgen.initialize(params, keygen);
+        } catch (InvalidAlgorithmParameterException e) {
+            throw new RuntimeException(e);
+        }
         KeyPair keys = pairgen.genKeyPair();
         if (keys.getPrivate() instanceof ECPrivateKey) {
             privkey = (ECPrivateKey) keys.getPrivate();
@@ -60,7 +83,9 @@ public class CodeHandler {
         byte[] fin = combine.getBytes();
 
         //Okay the other key is the coordinates of W aka the X and Y that we transmitted earlier.
-        Key tester = KeyBuilder.buildKey((byte) 0x14, (short) fin.length, false);
+        GenericSecretKey tester = (GenericSecretKey) KeyBuilder.buildKey((byte) 0x14, (short) fin.length, false);
+        println(tester);
+        tester.setKey(fin, (short) 0, (short) fin.length);
         if (tester instanceof GenericSecretKey) {
             this.otherKey = (GenericSecretKey) tester;
         }
@@ -69,7 +94,7 @@ public class CodeHandler {
 
 
         byte[] share = sharecombine.getBytes();
-        tester = KeyBuilder.buildKey((byte) 0x14, (short) fin.length, false);
+        tester = (GenericSecretKey) KeyBuilder.buildKey((byte) 0x14, (short) fin.length, false);
         if (tester instanceof GenericSecretKey) {
             this.Sharedkey = (GenericSecretKey) tester;
         }
@@ -120,7 +145,11 @@ public class CodeHandler {
         String fin = new String(output, StandardCharsets.UTF_16);
         return fin;
     }
-
-    
-
+    public static void main(String[] args) {
+        CodeHandler please = new CodeHandler();
+        CodeHandler client = new CodeHandler();
+        String[] pcoords = please.getPublicCoords();
+        String[] clcoords = client.getPublicCoords();
+        please.setOther_calcShared(clcoords[0], clcoords[1]);
+    }
 }
