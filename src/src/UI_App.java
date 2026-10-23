@@ -31,7 +31,7 @@ public class UI_App {
         // Responses
 
         // response box
-        MessageBox responseBox = test.addMessageBox(Color.WHITE, 800, 0, UIHandler.largeElementHeight + UIHandler.smallElementHeight);
+        MessageBox responseBox = test.addMessageBox(Color.WHITE, UIHandler.fontSize, 0, 500 - UIHandler.smallElementHeight);
 
         // Status Bar
 
@@ -128,6 +128,7 @@ public class UI_App {
         while (true) {
             if (connectFlag) {
                 connected = false;
+                connectFlag = false;
                 try {
                     conn.close();
                     statusBox.setMessage("Attempting connection to " + conn.getAddress() + ", port: " + conn.getPort() + "...");
@@ -140,9 +141,7 @@ public class UI_App {
                 connectButtonBox.setMessage("Disconnect");
                 statusBox.setMessage("Connected to " + conn.getAddress() + ", port: " + conn.getPort());
                 connected = true;
-                connectFlag = false;
-            }
-            if (connected) {
+
                 // key exchanges
                 CodeHandler crypto = new CodeHandler();
                 String[] mine = crypto.getPublicCoords();
@@ -159,8 +158,11 @@ public class UI_App {
                             String decoded = crypto.decoder(line);
                             System.out.println("[peer] " + decoded);
                             // add response
-                            messages += "Peer: " + decoded + "\n";
+                            messages += "Peer: " + decoded + System.lineSeparator() + System.lineSeparator();
                             responseBox.setMessage(messages);
+                            try {
+                                Thread.sleep(10);
+                            } catch (InterruptedException e1) {}
                         }
                     } catch (IOException e) {
                         statusBox.setMessage(e.toString());
@@ -172,17 +174,23 @@ public class UI_App {
                     System.exit(0);
                 }).start();
 
-                while (connected) {
-                    if (newMessage != null) {
-                        conn.send(crypto.encoder(newMessage));
-                        // add response
-                        messages += "You: " + newMessage + "\n";
-                        responseBox.setMessage(messages);
-                        newMessage = null;
+                new Thread(() -> {
+                    while (connected) {
+                        if (newMessage != null) {
+                            conn.send(crypto.encoder(newMessage));
+                            // add response
+                            messages += "You: " + newMessage + System.lineSeparator() + System.lineSeparator();
+                            responseBox.setMessage(messages);
+                            newMessage = null;
+                        }
+                        try {
+                            Thread.sleep(10);
+                        } catch (InterruptedException e1) {}
                     }
-                    Thread.sleep(10);
-                }
-            } else {
+                    System.exit(0);
+                }).start();
+            }
+            if (!connected) {
                 connectButtonBox.setMessage("Connect");
             }
             Thread.sleep(10);

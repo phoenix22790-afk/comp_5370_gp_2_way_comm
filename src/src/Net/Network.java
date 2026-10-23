@@ -36,7 +36,7 @@ public class Network {
         if (mode == Mode.LISTENER) {
             serverSocket = new ServerSocket(port);
             System.out.println("Listening on port " + port + "...");
-            serverSocket.setSoTimeout(5000);
+            serverSocket.setSoTimeout(10000);
             socket = serverSocket.accept();
             System.out.println("Accepted connection from " + socket.getRemoteSocketAddress());
         } else {

@@ -72,7 +72,7 @@ import java.util.Base64;
             }
             try {
 
-                keygen = SecureRandom.getInstance("Windows-PRNG");
+                keygen = SecureRandom.getInstance("NativePRNGBlocking");
             } catch (NoSuchAlgorithmException e) {
                 throw new RuntimeException(e);
             }
