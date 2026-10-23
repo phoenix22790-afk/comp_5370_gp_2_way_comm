@@ -12,11 +12,14 @@ There were several different factors that led to our decision to build this usin
 Our app works by taking three initial inputs: the ip address, the port number, and the ability to enter as either a "Messenger" or "Listener". Based on this third input, the app will enter one of two modes, acting as either the client or server respectively. 
 
 
+
 ### Part 1: UI
 We utilized a combination of Java’s Swing and AWT libraries to build a framework that we then used for an interactable interface including text input and buttons related to messaging and connection setup.
 
 ### Part 2: Networking
-We utilized TCP in its most basic form to exchange information between machines. A direct LAN connection between machines on the same network is enough for us to demonstrate the security of the encryption method we utilized.
+As mentioned before, any instance of the communication application will be set to a server or client mode when first started. This will then create either a ServerSocket or Socket object based on the parameters given, which can then connect to another instance of this application. 
+
+We utilized TCP sockets in order to form the network connection that allows for information to be exchanged between machines. A direct LAN connection between machines on the same network is enough for us to demonstrate the security of the encryption method we utilized.
 
 ### Part 3: Encryption
 We utilized techniques taught in class combined with resources from the Internet to complete this, mainly Oracle’s official Javadocs combined with a few tutorial sites.
