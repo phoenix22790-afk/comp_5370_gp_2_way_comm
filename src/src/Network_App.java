@@ -162,6 +162,7 @@ public class Network_App {
 
             //ENTER MAIN LOOP
             while(continueConnection){
+                /*
                 if(listening==true){//SERVER LISTENING
                     String msg = in.readUTF(); // Read message from client
                     System.out.println(msg);
@@ -175,6 +176,13 @@ public class Network_App {
                     catch(Exception IOException){
                     System.out.println("error");
                     }
+                */
+                if(listening==true){//SERVER LISTENING
+                    ServerListen();
+                }
+
+                else{//SERVER WRITING
+                    ServerWrite();
                 }
 
             }
@@ -201,6 +209,7 @@ public class Network_App {
         System.out.println("error");
         }
     }
+    
     public static void Client_Write(BufferedReader user_in, DataOutputStream out){
         try{
         String str_send=user_in.readLine(); //NEED TO FIGURE OUT EXIT METHOD
@@ -209,6 +218,24 @@ public class Network_App {
         catch(Exception IOException){
         System.out.println("error");
         }
+    }
+
+
+    public static void ServerListen(DataInputStream in){
+        String msg = in.readUTF(); // Read message from client
+                    System.out.println(msg);
+    }
+
+    
+    public static void ServerWrite(DataOutputStream out,BufferedReader user_in){
+        try{
+                    String str_send=user_in.readLine(); //NEED TO FIGURE OUT EXIT METHOD
+                    out.writeUTF(str_send);
+                    }
+                    catch(Exception IOException){
+                    System.out.println("error");
+                    }
+        
     }
 
 }
