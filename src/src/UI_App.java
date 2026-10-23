@@ -15,6 +15,7 @@ public class UI_App {
     static boolean connectFlag = false;
     static boolean connected = false;
     static String messages = "";
+    static String newMessage = null;
 
     public static void main(String[] args) throws Exception {
         Network conn = new Network();
@@ -26,6 +27,11 @@ public class UI_App {
         frame.add(test);
         frame.pack();
         frame.setVisible(true);
+
+        // Responses
+
+        // response box
+        MessageBox responseBox = test.addMessageBox(Color.WHITE, 800, 0, UIHandler.largeElementHeight + UIHandler.smallElementHeight);
 
         // Status Bar
 
@@ -93,11 +99,6 @@ public class UI_App {
             connectFlag = true;
         });
 
-        // Responses
-
-        // response box
-        MessageBox responseBox = test.addMessageBox(Color.WHITE, 800, 0, UIHandler.largeElementHeight + UIHandler.smallElementHeight);
-
         // Message Input Bar
 
         // input box
@@ -108,7 +109,7 @@ public class UI_App {
                     statusBox.setMessage("Please Start a Connection..");
                     return;
                 }
-                // TODO: do something
+                newMessage = str;
             }
         });
 
@@ -126,30 +127,60 @@ public class UI_App {
         // Done with UI setup, run loop here:
         while (true) {
             if (connectFlag) {
+                connected = false;
                 try {
-                    connected = false;
                     conn.close();
                     statusBox.setMessage("Attempting connection to " + conn.getAddress() + ", port: " + conn.getPort() + "...");
                     conn.start();
-                    connectButtonBox.setMessage("Disconnect");
-                    statusBox.setMessage("Connected to " + conn.getAddress() + ", port: " + conn.getPort());
-                    connected = true;
-                    connectFlag = false;
                 } catch (IOException e) {
                     statusBox.setMessage(e.toString());
                     e.printStackTrace();
-                    connectFlag = false;
+                    continue;
                 }
+                connectButtonBox.setMessage("Disconnect");
+                statusBox.setMessage("Connected to " + conn.getAddress() + ", port: " + conn.getPort());
+                connected = true;
+                connectFlag = false;
             }
             if (connected) {
-                try {
-                    String recv = conn.receive();
-                    messages += recv;
-                    responseBox.setMessage(messages);
-                } catch (IOException e) {
-                    statusBox.setMessage(e.toString());
-                    e.printStackTrace();
-                    connected = false;
+                // key exchanges
+                CodeHandler crypto = new CodeHandler();
+                String[] mine = crypto.getPublicCoords();
+                conn.send(mine[0] + "," + mine[1]);
+                String[] theirs = conn.receive().split(",");
+                crypto.setOther_calcShared(theirs[0], theirs[1]);
+                System.out.println("connected");
+
+                // reader
+                new Thread(() -> {
+                    try {
+                        String line;
+                        while ((line = conn.receive()) != null) {
+                            String decoded = crypto.decoder(line);
+                            System.out.println("[peer] " + decoded);
+                            // add response
+                            messages += "Peer: " + decoded + "\n";
+                            responseBox.setMessage(messages);
+                        }
+                    } catch (IOException e) {
+                        statusBox.setMessage(e.toString());
+                        e.printStackTrace();
+                        connected = false;
+                    }
+                    System.out.println("peer left");
+                    statusBox.setMessage("Peer left");
+                    System.exit(0);
+                }).start();
+
+                while (connected) {
+                    if (newMessage != null) {
+                        conn.send(crypto.encoder(newMessage));
+                        // add response
+                        messages += "You: " + newMessage + "\n";
+                        responseBox.setMessage(messages);
+                        newMessage = null;
+                    }
+                    Thread.sleep(10);
                 }
             } else {
                 connectButtonBox.setMessage("Connect");
