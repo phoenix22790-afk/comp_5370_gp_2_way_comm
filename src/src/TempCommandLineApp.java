@@ -17,7 +17,7 @@ public class TempCommandLineApp {
         net.setPort(Integer.parseInt(sc.nextLine()));
         net.start();
 
-        // key exchange
+        // key exchanges
         CodeHandler crypto = new CodeHandler();
         String[] mine = crypto.getPublicCoords();
         net.send(mine[0] + "," + mine[1]);
