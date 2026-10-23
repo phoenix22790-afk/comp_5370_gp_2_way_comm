@@ -8,8 +8,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
-import UI.MessageBox;
-import UI.UIHandler;
+//import UI.MessageBox;
+//import UI.UIHandler;
 
 import java.io.*;
 import java.net.*;
@@ -25,7 +25,7 @@ public class Network_App {
 
 
 
-
+        /*
         // >>>>>>>>>>> UI EXAMPLE <<<<<<<<<<<<<<
 
         UIHandler test = new UIHandler(Color.WHITE);
@@ -49,11 +49,11 @@ public class Network_App {
         // message -> is also a lambda expression, except there is output returning from it when it completes. you can use message within the lambda expression only
         test.addTextBox(12, 100, 30, 100, 110, Color.BLACK, message -> {
             save.setMessage(message);
-            /*this line should be called whenever you get a message from the other client to display their message on screen.
-            Here, it simply updates whenever you hit enter in the text entry field. Feel free to test it like this tho!
-             */
+            //this line should be called whenever you get a message from the other client to display their message on screen.
+            //Here, it simply updates whenever you hit enter in the text entry field. Feel free to test it like this tho!
+             
         });
-
+        
 
 
         // this is the nuke button that clears the entire screen and removes everything dont press it lol
@@ -71,7 +71,7 @@ public class Network_App {
             }
         });
 
-
+        */
 
 
 
@@ -82,8 +82,7 @@ public class Network_App {
 
         //receive port
         System.out.println("Enter port number: ");
-        //int port=scan.nextInt();
-        int port = Integer.parseInt(scan.nextLine().trim());
+        int port=scan.nextInt();
 
         //determine if Server or Client
         while(known_type==false){
@@ -110,6 +109,7 @@ public class Network_App {
         if (listening==false){//CLIENT METHOD
             //SETUP SECTION
             Socket client_sock = new Socket(ip,port);
+            System.out.println("Socket made");
             BufferedReader user_in = new BufferedReader(new InputStreamReader(System.in));
             
             DataInputStream in = new DataInputStream(client_sock.getInputStream());
@@ -119,7 +119,7 @@ public class Network_App {
             //ENTER MAIN LOOP
             while(continueConnection){
                 if(listening==true){//CLIENT LISTENING
-                    String server_msg=in.readLine();
+                    String server_msg=in.readUTF();
                     System.out.println(server_msg);
                 }
 
@@ -140,27 +140,23 @@ public class Network_App {
         else if (listening==true){//SERVER METHOD
             //SETUP
             ServerSocket server_sock = new ServerSocket(port); //note: may need to make this ip, 1, port
-            System.out.println("Server running, attempting connection...");
+            System.out.println("Server Socket made, attempt to connect");
             Socket client_sock = server_sock.accept();
             System.out.println("Connected!");
-            /*
+            
             DataInputStream in = new DataInputStream(client_sock.getInputStream());
             DataOutputStream out = new DataOutputStream(client_sock.getOutputStream());
             BufferedReader user_in = new BufferedReader(new InputStreamReader(System.in));
-            */
 
-            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-            
             //ENTER MAIN LOOP
             while(continueConnection){
                 if(listening==true){//SERVER LISTENING
-                    String msg = in.readLine(); // Read message from client
+                    String msg = in.readUTF(); // Read message from client
                     System.out.println(msg);
                 }
 
                 else{//SERVER WRITING
-                    String str_send=scan.readLine(); //NEED TO FIGURE OUT EXIT METHOD
+                    String str_send=user_in.readLine(); //NEED TO FIGURE OUT EXIT METHOD
                     out.writeUTF(str_send);
                 }
 
