@@ -1,9 +1,11 @@
+package Net;
+
 import java.io.*;
 import java.net.*;
 import java.util.function.Consumer;
 
 
-public class Network_App {
+public class Network {
 
     public enum Mode { LISTENER, HOST }
 
@@ -34,6 +36,7 @@ public class Network_App {
         if (mode == Mode.LISTENER) {
             serverSocket = new ServerSocket(port);
             System.out.println("Listening on port " + port + "...");
+            serverSocket.setSoTimeout(5000);
             socket = serverSocket.accept();
             System.out.println("Accepted connection from " + socket.getRemoteSocketAddress());
         } else {
@@ -83,6 +86,14 @@ public class Network_App {
 
     public Mode getMode() {
         return mode;
+    }
+
+    public String getAddress() {
+        return host;
+    }
+
+    public int getPort() {
+        return port;
     }
 
     public void close() {

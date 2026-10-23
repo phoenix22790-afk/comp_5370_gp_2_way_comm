@@ -17,7 +17,9 @@ public class UI_App {
     static String messages = "";
 
     public static void main(String[] args) throws Exception {
-        Network conn = new Network(Network.Mode.LISTENER, "", -1); // DEFAULT
+        Network conn = new Network();
+        conn.setMode(Network.Mode.LISTENER); //default
+        conn.setPort(-1); //force port to be set
         UIHandler test = new UIHandler();
         JFrame frame = new JFrame();
         test.setPreferredSize(new Dimension(800, 500));
@@ -80,7 +82,7 @@ public class UI_App {
                 conn.close();
                 connected = false;
             }
-            if (conn.getAddress() == "") {
+            if (conn.getAddress() == null) {
                 statusBox.setMessage("Please Input an Address..");
                 return;
             }

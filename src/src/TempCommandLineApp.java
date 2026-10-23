@@ -1,17 +1,20 @@
 import java.util.Scanner;
 
+import Net.*;
+import Code.*;
+
 public class TempCommandLineApp {
     public static void main(String[] args) throws Exception {
         Scanner sc = new Scanner(System.in);
-        Network_App net = new Network_App();
+        Network net = new Network();
 
         System.out.print("(L)istener or (H)ost?: ");
         if (sc.nextLine().toUpperCase().startsWith("H")) {
-            net.setMode(Network_App.Mode.HOST);
+            net.setMode(Network.Mode.HOST);
             System.out.print("ip: ");
             net.setHost(sc.nextLine());
         } else {
-            net.setMode(Network_App.Mode.LISTENER);
+            net.setMode(Network.Mode.LISTENER);
         }
         System.out.print("port: ");
         net.setPort(Integer.parseInt(sc.nextLine()));
