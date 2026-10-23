@@ -42,6 +42,7 @@ public class TextBox implements UIElement, KeyListener {
             String message = text.toString();   // grab the text BEFORE clearing
             text.setLength(0);
             action.accept(message);
+            focused = false;
         }
         // guards against pressing backspace in an empty box
         else if (c == '\b') { if (!text.isEmpty()) text.setLength(text.length() - 1); }
