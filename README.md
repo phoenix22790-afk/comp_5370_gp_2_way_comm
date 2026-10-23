@@ -20,7 +20,7 @@ Our app works by taking three initial inputs: the ip address, the port number, a
 We utilized a combination of Java’s Swing and AWT libraries to build a framework that we then used for an interactable interface including text input and buttons related to messaging and connection setup.
 <img width="884" height="609" alt="image" src="https://github.com/user-attachments/assets/b1983c24-0302-49a4-b001-b7a7308acd9d" />
 
-At the top of the user interface, there is a button to switch the mode between listening and writing, as well as an indicator that displays the current mode. Alongside this, there is another indicator to show the status of the connection. 
+At the top of the user interface, there are two indicators that display the current mode and the status of the connection respectively. Below this, there is a button to switch the mode that the application is in, as well as two input fields for the port and IP address. This portion of the UI also contains a button to establish a connection using these parameters.
 At the bottom of the interface, there is a text box that can be used to send messages to the connected application.
 
 ### Part 2: Networking
