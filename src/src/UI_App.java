@@ -128,14 +128,15 @@ public class UI_App {
         while (true) {
             if (connectFlag) {
                 connected = false;
-                connectFlag = false;
                 try {
                     conn.close();
                     statusBox.setMessage("Attempting connection to " + conn.getAddress() + ", port: " + conn.getPort() + "...");
                     conn.start();
+                    connectFlag = false;
                 } catch (IOException e) {
                     statusBox.setMessage(e.toString());
                     e.printStackTrace();
+                    connectFlag = false;
                     continue;
                 }
                 connectButtonBox.setMessage("Disconnect");
@@ -162,8 +163,11 @@ public class UI_App {
                             responseBox.setMessage(messages);
                             try {
                                 Thread.sleep(10);
-                            } catch (InterruptedException e1) {}
+                            } catch (InterruptedException e) {
+                                break;
+                            }
                         }
+                        connected = false;
                     } catch (IOException e) {
                         statusBox.setMessage(e.toString());
                         e.printStackTrace();
@@ -171,7 +175,6 @@ public class UI_App {
                     }
                     System.out.println("peer left");
                     statusBox.setMessage("Peer left");
-                    System.exit(0);
                 }).start();
 
                 new Thread(() -> {
@@ -185,9 +188,10 @@ public class UI_App {
                         }
                         try {
                             Thread.sleep(10);
-                        } catch (InterruptedException e1) {}
+                        } catch (InterruptedException e) {
+                            break;
+                        }
                     }
-                    System.exit(0);
                 }).start();
             }
             if (!connected) {
