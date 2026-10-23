@@ -11,7 +11,7 @@ public class UI_App {
     public static void main(String[] args) throws Exception {
         UIHandler test = new UIHandler();
         JFrame frame = new JFrame();
-        test.setPreferredSize(new Dimension(800, 500));`
+        test.setPreferredSize(new Dimension(800, 500));
         frame.add(test);
         frame.pack();
         frame.setVisible(true);
