@@ -1,6 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.function.Consumer;
 
 import UI.MessageBox;
 import UI.UIHandler;
@@ -43,18 +44,11 @@ public class UI_App {
         return messageBox;
     }
 
-    public static MessageBox addStyledField(UIHandler handle, String text, int width, int height, int size, int x, int y, int x2, int y2, Runnable method) {
+    public static void addStyledField(UIHandler handle, int width, int height, int size, int x, int y, Consumer<String> method) {
         handle.addWindow(bgButtonColor3, width, height, x, y);
         handle.addWindow(bgButtonColor1, width - 2, height - 2, x + 2, y + 2);
         handle.addWindow(bgButtonColor2, width - 4, height - 4, x + 2, y + 2);
-        MessageBox messageBox = handle.addMessageBox(fgButtonColor, size, x + x2, y + y2); // TODO:
-        messageBox.setMessage(text); // TODO:
-        handle.addTextBox(fontSize, width, height, x, y, fgButtonColor, message -> {
-            // TODO: maybe make method run here, with message as param?
-            messageBox.setMessage(message);
-        });
-        // TODO:
-        return messageBox;
+        handle.addTextBox(fontSize, width, height, x, y, fgButtonColor, method);
     }
 
     public static void main(String[] args) throws Exception {
@@ -71,8 +65,10 @@ public class UI_App {
         });
         addStyledMessage(test, "TEST MODE INDICATOR", 200, largeElementHeight, fontSize, 200, 0, 10, largeElementOffset);
         addStyledMessage(test, "TEST CONN STATUS", 200, largeElementHeight, fontSize, 400, 0, 10, largeElementOffset);
-        addStyledField(test, "TEST INPUT", 800, smallElementHeight, fontSize, 0, 500 - smallElementHeight,10, smallElementOffset, () -> {
-            // TODO:
+        addStyledField(test, 800, smallElementHeight, fontSize, 0, 500 - smallElementHeight, new Consumer<String>() {
+            public void accept(String str) {
+                // TODO: do something
+            }
         });
 
         // Handle close
