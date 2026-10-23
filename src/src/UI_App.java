@@ -5,7 +5,6 @@ import java.util.function.Consumer;
 
 import UI.MessageBox;
 import UI.UIHandler;
-import UI.UIHandler.*;
 
 public class UI_App {
     public static void main(String[] args) throws Exception {

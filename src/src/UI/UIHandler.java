@@ -1,9 +1,5 @@
 package UI;
 
-import UI.ClickListener;
-import UI.TextBox;
-import UI.UIElement;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyListener;

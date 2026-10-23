@@ -3,7 +3,6 @@ import java.net.*;
 
 
 public class Network_App {
-
     public enum Mode { LISTENER, HOST }
 
     private Mode mode;
@@ -21,7 +20,6 @@ public class Network_App {
         this.port = port;
     }
 
-
     public void start() throws IOException {
         if (mode == Mode.LISTENER) {
             serverSocket = new ServerSocket(port);
@@ -36,11 +34,9 @@ public class Network_App {
         out = new PrintWriter(socket.getOutputStream(), true);
     }
 
-
     public void send(String message) {
         out.println(message);
     }
-
 
     public String receive() throws IOException {
         return in.readLine();
@@ -62,6 +58,5 @@ public class Network_App {
         try { if (socket != null) socket.close(); } catch (IOException ignored) {}
         try { if (serverSocket != null) serverSocket.close(); } catch (IOException ignored) {}
         in = null; out = null; socket = null; serverSocket = null;
-    }
     }
 }
