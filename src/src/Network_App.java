@@ -23,59 +23,6 @@ public class Network_App {
         boolean continueConnection=true; // if false, this is basically the signal to stop and end the program
         Scanner scan=new Scanner(System.in);
 
-
-
-        /*
-        // >>>>>>>>>>> UI EXAMPLE <<<<<<<<<<<<<<
-
-        UIHandler test = new UIHandler(Color.WHITE);
-        JFrame frame = new JFrame();
-        test.setPreferredSize(new Dimension(1080, 720));
-        frame.add(test);
-        frame.pack();
-        frame.setVisible(true);
-        test.addWindow(Color.BLUE, 100, 30, 100, 110);
-        test.addText("Hello!", 12, Color.RED, 100, 100);
-
-        // () -> {insert code here} is a lambda expression, you can put whatever you want inside of it and it'll execute when the user clicks the button.
-        test.addButton(Color.GREEN, 100, 100, 200, 200, () -> {
-            test.addText("The button worked!", 12, Color.RED, 100, 200);
-        });
-
-
-        // To update a message box, you MUST save it beforehand. the addMessageBox method returns the message box object that you can edit later
-        MessageBox save = test.addMessageBox(Color.GREEN, 12, 0, 1080);
-
-        // message -> is also a lambda expression, except there is output returning from it when it completes. you can use message within the lambda expression only
-        test.addTextBox(12, 100, 30, 100, 110, Color.BLACK, message -> {
-            save.setMessage(message);
-            //this line should be called whenever you get a message from the other client to display their message on screen.
-            //Here, it simply updates whenever you hit enter in the text entry field. Feel free to test it like this tho!
-             
-        });
-        
-
-
-        // this is the nuke button that clears the entire screen and removes everything dont press it lol
-        test.addButton(Color.RED, 100, 100, 0, 0, () -> {
-            test.clearWindow();
-        });
-
-
-        // Handle close
-        frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-        frame.addWindowListener(new WindowAdapter() {
-            public void windowClosing(WindowEvent e) {
-                // TODO: Handle safe disconnection here
-                System.exit(0);
-            }
-        });
-
-        */
-
-
-
-
         //receive ip
         System.out.println("Enter ip address: ");
         String ip=scan.nextLine();
