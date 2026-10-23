@@ -24,7 +24,13 @@ public class TempCommandLineApp {
         CodeHandler crypto = new CodeHandler();
         String[] mine = crypto.getPublicCoords();
         net.send(mine[0] + "," + mine[1]);
-        String[] theirs = net.receive().split(",");
+        String code = null;
+        System.out.println("wait for code");
+        while (code == null) {
+            Thread.sleep(10);
+            code = net.receive();
+        }
+        String[] theirs = code.split(",");
         crypto.setOther_calcShared(theirs[0], theirs[1]);
         System.out.println("connected");
 
@@ -32,7 +38,7 @@ public class TempCommandLineApp {
         new Thread(() -> {
             try {
                 String line;
-                while ((line = net.receive()) != null) {
+                if ((line = net.receive()) != null) {
                     System.out.println("[peer] " + crypto.decoder(line));
                 }
             } catch (Exception e) {}

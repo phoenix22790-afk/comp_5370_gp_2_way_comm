@@ -58,8 +58,14 @@ public class Network {
     private void readLoop() {
         try {
             String line;
-            while (reading && (line = in.readLine()) != null) {
-                onMessage.accept(line);
+            while (reading && in.ready()) {
+                if ((line = in.readLine()) != null)
+                    onMessage.accept(line);
+                try {
+                    Thread.sleep(10);
+                } catch (InterruptedException e) {
+                    break;
+                }
             }
         } catch (IOException ignored) {
             // socket closed by close() or a network error
@@ -70,11 +76,20 @@ public class Network {
     }
 
     public void send(String message) {
+        if (out == null)
+            return;
         out.println(message);
     }
 
-
     public String receive() throws IOException {
+        return in.readLine();
+    }
+
+    public String receiveIfReady() throws IOException {
+        if (in == null)
+            return null;
+        if (!in.ready())
+            return null;
         return in.readLine();
     }
 
@@ -112,5 +127,11 @@ public class Network {
         socket = null;
         serverSocket = null;
         reading = false;
+    }
+
+    public boolean isClosed() {
+        if (socket == null)
+            return true;
+        return socket.isClosed();
     }
 }
