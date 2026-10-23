@@ -5,7 +5,6 @@ import java.util.function.Consumer;
 
 import UI.MessageBox;
 import UI.UIHandler;
-import UI.UIHandler.*;
 
 public class UI_App {
     public static void main(String[] args) throws Exception {
@@ -16,26 +15,48 @@ public class UI_App {
         frame.pack();
         frame.setVisible(true);
 
-        // Header Bar
+        // Status Bar
+
+        // mode indicator
+        MessageBox modeBox = test.addStyledMessage("TEST MODE INDICATOR", 300, UIHandler.largeElementHeight, UIHandler.fontSize, 0, 0, 10, UIHandler.largeElementOffset);
+        // connection status
+        MessageBox statusBox = test.addStyledMessage("TEST CONN STATUS", 500, UIHandler.largeElementHeight, UIHandler.fontSize, 300, 0, 10, UIHandler.largeElementOffset);
+
+        // Connection Bar
 
         // mode switch
-        MessageBox modeButtonBox = test.addStyledButton("TEST MODE SWITCH", 200, UIHandler.largeElementHeight, UIHandler.fontSize, 0, 0, 10, UIHandler.largeElementOffset, () -> {
+        MessageBox modeButtonBox = test.addStyledButton("Change Mode", 160, UIHandler.smallElementHeight, UIHandler.fontSize, 0, UIHandler.largeElementHeight, 10, UIHandler.smallElementOffset, () -> {
             // TODO: mode switch button
         });
-        // mode indicator
-        MessageBox modeBox = test.addStyledMessage("TEST MODE INDICATOR", 200, UIHandler.largeElementHeight, UIHandler.fontSize, 200, 0, 10, UIHandler.largeElementOffset);
-        // connection status
-        MessageBox statusBox = test.addStyledMessage("TEST CONN STATUS", 200, UIHandler.largeElementHeight, UIHandler.fontSize, 400, 0, 10, UIHandler.largeElementOffset);
+        // address input
+        test.addStyledMessage("Addr:", 80, UIHandler.smallElementHeight, UIHandler.fontSize, 160, UIHandler.largeElementHeight, 10, UIHandler.smallElementOffset);
+        test.addStyledField(240, UIHandler.smallElementHeight, UIHandler.fontSize, 160 + 80, UIHandler.largeElementHeight, new Consumer<String>() {
+            public void accept(String str) {
+                // TODO: do something
+            }
+        });
+        // port input
+        test.addStyledMessage("Port:", 80, UIHandler.smallElementHeight, UIHandler.fontSize, 160 + 80 + 240, UIHandler.largeElementHeight, 10, UIHandler.smallElementOffset);
+        test.addStyledField(80, UIHandler.smallElementHeight, UIHandler.fontSize, 160 + 80 + 240 + 80, UIHandler.largeElementHeight, new Consumer<String>() {
+            public void accept(String str) {
+                // TODO: do something
+            }
+        });
+        // connect
+        MessageBox connectButtonBox = test.addStyledButton("Connect", 160, UIHandler.smallElementHeight, UIHandler.fontSize, 160 + 80 + 240 + 80 + 80, UIHandler.largeElementHeight, 10, UIHandler.smallElementOffset, () -> {
+            // TODO: mode switch button
+        });
 
         // Responses
 
         // response box
-        MessageBox responseBox = test.addMessageBox(Color.WHITE, 800, 0, UIHandler.largeElementHeight);
+        MessageBox responseBox = test.addMessageBox(Color.WHITE, 800, 0, UIHandler.largeElementHeight + UIHandler.smallElementHeight);
 
         // Message Input Bar
 
         // input box
-        test.addStyledField(800, UIHandler.smallElementHeight, UIHandler.fontSize, 0, 500 - UIHandler.smallElementHeight, new Consumer<String>() {
+        test.addStyledMessage("Message:", 120, UIHandler.smallElementHeight, UIHandler.fontSize, 0, 500 - UIHandler.smallElementHeight, 10, UIHandler.smallElementOffset);
+        test.addStyledField(680, UIHandler.smallElementHeight, UIHandler.fontSize, 120, 500 - UIHandler.smallElementHeight, new Consumer<String>() {
             public void accept(String str) {
                 // TODO: do something
             }
