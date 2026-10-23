@@ -82,7 +82,8 @@ public class Network_App {
 
         //receive port
         System.out.println("Enter port number: ");
-        int port=scan.nextInt();
+        //int port=scan.nextInt();
+        int port = Integer.parseInt(scan.nextLine().trim());
 
         //determine if Server or Client
         while(known_type==false){
@@ -118,7 +119,7 @@ public class Network_App {
             //ENTER MAIN LOOP
             while(continueConnection){
                 if(listening==true){//CLIENT LISTENING
-                    String server_msg=in.readUTF();
+                    String server_msg=in.readLine();
                     System.out.println(server_msg);
                 }
 
@@ -139,21 +140,27 @@ public class Network_App {
         else if (listening==true){//SERVER METHOD
             //SETUP
             ServerSocket server_sock = new ServerSocket(port); //note: may need to make this ip, 1, port
+            System.out.println("Server running, attempting connection...");
             Socket client_sock = server_sock.accept();
-            
+            System.out.println("Connected!");
+            /*
             DataInputStream in = new DataInputStream(client_sock.getInputStream());
             DataOutputStream out = new DataOutputStream(client_sock.getOutputStream());
             BufferedReader user_in = new BufferedReader(new InputStreamReader(System.in));
+            */
 
+            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+            
             //ENTER MAIN LOOP
             while(continueConnection){
                 if(listening==true){//SERVER LISTENING
-                    String msg = in.readUTF(); // Read message from client
+                    String msg = in.readLine(); // Read message from client
                     System.out.println(msg);
                 }
 
                 else{//SERVER WRITING
-                    String str_send=user_in.readLine(); //NEED TO FIGURE OUT EXIT METHOD
+                    String str_send=scan.readLine(); //NEED TO FIGURE OUT EXIT METHOD
                     out.writeUTF(str_send);
                 }
 
