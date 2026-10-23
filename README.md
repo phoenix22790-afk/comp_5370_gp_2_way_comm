@@ -9,7 +9,7 @@ There were several different factors that led to our decision to build this usin
 ## Application Details
 
 ### How it Works
-Our app works by taking three initial inputs: the ip address, the port number, and the ability to enter as either a "Messenger" or "Listener". Based on this third input, the app will enter one of two modes, acting as either the client or server respectively. 
+Our app works by taking three initial inputs: the ip address, the port number, and the ability to enter as either a "Messenger" or "Listener". Based on this third input, the app will enter one of two modes, acting as either the client or server respectively. The app can then switch between a "listening" and "sending" mode, to either receive and print messages from the connected application or send messages based on user input into the text bar.
 
 
 
