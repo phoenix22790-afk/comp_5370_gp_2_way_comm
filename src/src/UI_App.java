@@ -1,13 +1,23 @@
 import javax.swing.*;
+
+import Net.Network;
+import Code.CodeHandler;
+
 import java.awt.*;
 import java.awt.event.*;
+import java.io.IOException;
 import java.util.function.Consumer;
 
 import UI.MessageBox;
 import UI.UIHandler;
 
 public class UI_App {
+    static boolean connectFlag = false;
+    static boolean connected = false;
+    static String messages = "";
+
     public static void main(String[] args) throws Exception {
+        Network conn = new Network(Network.Mode.LISTENER, "", -1); // DEFAULT
         UIHandler test = new UIHandler();
         JFrame frame = new JFrame();
         test.setPreferredSize(new Dimension(800, 500));
@@ -18,33 +28,67 @@ public class UI_App {
         // Status Bar
 
         // mode indicator
-        MessageBox modeBox = test.addStyledMessage("TEST MODE INDICATOR", 300, UIHandler.largeElementHeight, UIHandler.fontSize, 0, 0, 10, UIHandler.largeElementOffset);
+        MessageBox modeBox = test.addStyledMessage("Mode: LISTENER", 300, UIHandler.largeElementHeight, UIHandler.fontSize, 0, 0, 10, UIHandler.largeElementOffset);
         // connection status
-        MessageBox statusBox = test.addStyledMessage("TEST CONN STATUS", 500, UIHandler.largeElementHeight, UIHandler.fontSize, 300, 0, 10, UIHandler.largeElementOffset);
+        MessageBox statusBox = test.addStyledMessage("Hello!", 500, UIHandler.largeElementHeight, UIHandler.fontSize, 300, 0, 10, UIHandler.largeElementOffset);
 
         // Connection Bar
 
         // mode switch
-        MessageBox modeButtonBox = test.addStyledButton("Change Mode", 160, UIHandler.smallElementHeight, UIHandler.fontSize, 0, UIHandler.largeElementHeight, 10, UIHandler.smallElementOffset, () -> {
-            // TODO: mode switch button
+        test.addStyledButton("Change Mode", 160, UIHandler.smallElementHeight, UIHandler.fontSize, 0, UIHandler.largeElementHeight, 10, UIHandler.smallElementOffset, () -> {
+            conn.switchMode();
+            if (conn.getMode() == Network.Mode.LISTENER) {
+                modeBox.setMessage("Mode: LISTENER");
+                statusBox.setMessage("Mode updated to LISTENER");
+            }
+            else {
+                modeBox.setMessage("Mode: HOST");
+                statusBox.setMessage("Mode updated to HOST");
+            }
         });
         // address input
         test.addStyledMessage("Addr:", 80, UIHandler.smallElementHeight, UIHandler.fontSize, 160, UIHandler.largeElementHeight, 10, UIHandler.smallElementOffset);
         test.addStyledField(240, UIHandler.smallElementHeight, UIHandler.fontSize, 160 + 80, UIHandler.largeElementHeight, new Consumer<String>() {
             public void accept(String str) {
-                // TODO: do something
+                conn.setHost(str);
+                statusBox.setMessage("Address updated to " + str);
             }
         });
         // port input
         test.addStyledMessage("Port:", 80, UIHandler.smallElementHeight, UIHandler.fontSize, 160 + 80 + 240, UIHandler.largeElementHeight, 10, UIHandler.smallElementOffset);
         test.addStyledField(80, UIHandler.smallElementHeight, UIHandler.fontSize, 160 + 80 + 240 + 80, UIHandler.largeElementHeight, new Consumer<String>() {
             public void accept(String str) {
-                // TODO: do something
+                try {
+                   int port = Integer.parseInt(str);
+                   if (port >= 0 && port <= 65535) {
+                        conn.setPort(port);
+                        statusBox.setMessage("Port updated to " + str);
+                   }
+                }
+                catch (NumberFormatException e) {
+                    statusBox.setMessage("Please Input a Valid Port..");
+                    return;
+                }
             }
         });
         // connect
         MessageBox connectButtonBox = test.addStyledButton("Connect", 160, UIHandler.smallElementHeight, UIHandler.fontSize, 160 + 80 + 240 + 80 + 80, UIHandler.largeElementHeight, 10, UIHandler.smallElementOffset, () -> {
-            // TODO: mode switch button
+            if (connectFlag) {
+                return;
+            }
+            if (connected) {
+                conn.close();
+                connected = false;
+            }
+            if (conn.getAddress() == "") {
+                statusBox.setMessage("Please Input an Address..");
+                return;
+            }
+            if (conn.getPort() == -1) {
+                statusBox.setMessage("Please Input a Port..");
+                return;
+            }
+            connectFlag = true;
         });
 
         // Responses
@@ -58,6 +102,10 @@ public class UI_App {
         test.addStyledMessage("Message:", 120, UIHandler.smallElementHeight, UIHandler.fontSize, 0, 500 - UIHandler.smallElementHeight, 10, UIHandler.smallElementOffset);
         test.addStyledField(680, UIHandler.smallElementHeight, UIHandler.fontSize, 120, 500 - UIHandler.smallElementHeight, new Consumer<String>() {
             public void accept(String str) {
+                if (!connected) {
+                    statusBox.setMessage("Please Start a Connection..");
+                    return;
+                }
                 // TODO: do something
             }
         });
@@ -68,9 +116,43 @@ public class UI_App {
         frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         frame.addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
-                // TODO: Handle safe disconnection here
+                conn.close();
                 System.exit(0);
             }
         });
+
+        // Done with UI setup, run loop here:
+        while (true) {
+            if (connectFlag) {
+                try {
+                    connected = false;
+                    conn.close();
+                    statusBox.setMessage("Attempting connection to " + conn.getAddress() + ", port: " + conn.getPort() + "...");
+                    conn.start();
+                    connectButtonBox.setMessage("Disconnect");
+                    statusBox.setMessage("Connected to " + conn.getAddress() + ", port: " + conn.getPort());
+                    connected = true;
+                    connectFlag = false;
+                } catch (IOException e) {
+                    statusBox.setMessage(e.toString());
+                    e.printStackTrace();
+                    connectFlag = false;
+                }
+            }
+            if (connected) {
+                try {
+                    String recv = conn.receive();
+                    messages += recv;
+                    responseBox.setMessage(messages);
+                } catch (IOException e) {
+                    statusBox.setMessage(e.toString());
+                    e.printStackTrace();
+                    connected = false;
+                }
+            } else {
+                connectButtonBox.setMessage("Connect");
+            }
+            Thread.sleep(10);
+        }
     }
 }
